@@ -1,32 +1,31 @@
 import { Router } from "express";
-import { body } from "express-validator";
-
-import { login, register, registerAdmin } from "../controllers/auth.controller";
-import { validate } from "../middlewares/validate.middleware";
+import { AuthController } from "../controllers/auth.controller";
+import { validateDto } from "../middlewares/dto-validate.middleware";
+import { RegisterDto } from "../dto/register.dto";
+import { LoginDto } from "../dto/login.dto";
 import { authenticate } from "../middlewares/auth.middleware";
 import { authorizeRoles } from "../middlewares/role.middleware";
 
 const router = Router();
+const authController = new AuthController();
 
 router.post(
   "/register",
-  body("name").notEmpty(),
-  body("email").isEmail(),
-  body("password").isLength({ min: 6 }),
-  validate,
-  register
+  validateDto(RegisterDto),
+  authController.register
 );
 
 router.post(
   "/register-admin",
-  body("name").notEmpty(),
-  body("email").isEmail(),
-  body("password").isLength({ min: 6 }),
-  validate,
-  registerAdmin
+  validateDto(RegisterDto),
+  authController.registerAdmin
 );
 
-router.post("/login", login);
+router.post(
+  "/login",
+  validateDto(LoginDto),
+  authController.login
+);
 
 router.get(
   "/admin",
