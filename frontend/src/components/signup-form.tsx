@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "@/store/authStore";
-import { SignupRole } from "@/api/auth";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +17,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 
+
 export function Signup() {
   const [formData, setFormData] = useState({
     name: "",
@@ -26,10 +25,10 @@ export function Signup() {
     password: "",
   });
 
-  const [role, setRole] = useState<SignupRole>("USER");
+  const [role, setRole] = useState("USER");
   const [errors, setErrors] = useState<string | null>(null);
 
-  const signup = useAuthStore((state) => state.signup);
+  
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,7 +36,6 @@ export function Signup() {
     setErrors(null);
 
     try {
-      await signup(role, formData);
       navigate("/login");
     } catch (err: any) {
       setErrors(

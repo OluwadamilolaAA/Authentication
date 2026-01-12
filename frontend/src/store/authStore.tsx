@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { signUp, login as loginAPI, SignupData, SignupRole } from "@/api/auth";
+import { signUp, login as loginAPI, type SignupRole, type SignupData,  } from "@/api/auth";
 
 interface AuthState {
   user: any | null;
@@ -17,7 +17,8 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signup: async (role, data) => {
     try {
-      await signUp(role, data); 
+      const res = await signUp(role, data);
+      set({ user: res.user, isAuthenticated: true });
     } catch (err: any) {
       throw err;
     }

@@ -45,6 +45,11 @@ export class AuthService {
     return userWithoutSensitive;
   }
 
+  async getAllUsers() {
+    const users = await User.find().select("-password, -refreshToken");
+    return users;
+  }
+
   async loginUser(email: string, password: string) {
     const user = await User.findOne({ email: email.toLowerCase() }).select(
       "+password"

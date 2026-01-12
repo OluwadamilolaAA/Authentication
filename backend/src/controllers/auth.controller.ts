@@ -44,6 +44,18 @@ export class AuthController {
     }
   };
 
+  getAllUsers = async (req: Request, res: Response) => {
+    try{
+      const users = await this.authService.getAllUsers();
+      res.status(200).json({
+        message: "User fetched successfully",
+        users
+      })
+    } catch(error: any){
+      res.status(400).json({message: error.message});
+    }
+  }
+
   login = async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;

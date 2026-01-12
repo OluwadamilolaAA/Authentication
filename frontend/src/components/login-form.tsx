@@ -104,7 +104,7 @@ export function Login() {
                 </Button>
 
                 <FieldDescription className="text-center">
-                  Don't have an account?{" "}
+                  Don&apos;t have an account?{" "}
                   <a href="/signup" className="underline">
                     Sign up
                   </a>
