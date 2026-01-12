@@ -48,6 +48,14 @@ export class AuthService {
   async getAllUsers() {
     const users = await User.find().select("-password, -refreshToken");
     return users;
+  };
+
+  async getUserById(userId: string) {
+    const user = await User.findById(userId).select("-password, -refreshToken");
+    if (!user) {
+      throw new Error("User not found");
+    }
+    return user;
   }
 
   async loginUser(email: string, password: string) {

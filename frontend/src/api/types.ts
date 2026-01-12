@@ -37,3 +37,8 @@ export interface RegisterRequest {
     message: string;
     users: User[];
  }
+
+ export interface getUserByIdResponse {
+    message: string;
+    user: User;
+ }

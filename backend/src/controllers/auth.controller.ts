@@ -56,6 +56,19 @@ export class AuthController {
     }
   }
 
+  getUserById = async (req: Request, res: Response) => {
+    try{
+      const userId = req.params.id;
+      const user = await this.authService.getUserById(userId);
+      res.status(200).json({
+        message: "User fetched successfully",
+        user
+      })
+    } catch(error: any){
+      res.status(400).json({message: error.message});
+    }
+  }
+
   login = async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;

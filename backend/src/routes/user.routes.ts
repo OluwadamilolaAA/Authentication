@@ -12,6 +12,13 @@ router.get(
   authController.getAllUsers  
 );
 
+router.get(
+  "/users/:id",
+  authenticate,
+  authorizeRoles("admin"),
+  authController.getUserById
+)
+
 
 
 export default router;

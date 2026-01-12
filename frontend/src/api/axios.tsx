@@ -26,3 +26,6 @@ export const login = (payload: LoginRequest) =>
 
   export const getAllUsers = () =>
     api.get<getAllUsersResponse, AxiosResponse<getAllUsersResponse>>("/users")
+
+  export const getUserById = (id: string) =>
+    api.get<getAllUsersResponse, AxiosResponse<getAllUsersResponse>>(`/users/${id}`)
