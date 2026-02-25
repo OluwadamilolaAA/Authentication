@@ -1,14 +1,29 @@
-import { plainToInstance } from "class-transformer";
+import { plainToInstance, type ClassConstructor } from "class-transformer";
 import { validate } from "class-validator";
 import { Request, Response, NextFunction } from "express";
+import { ApiError } from "../utils/apiError";
 
-export const validateDto = (DtoClass: any) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    const dtoInstance = plainToInstance(DtoClass, req.body);
-    const errors = await validate(dtoInstance);
+type ValidationDetail = {
+  field: string;
+  messages: string[];
+};
+
+export const validateDto = <T extends object>(DtoClass: ClassConstructor<T>) => {
+  return async (req: Request, _res: Response, next: NextFunction) => {
+    const dtoInstance = plainToInstance(DtoClass, req.body) as T;
+    const errors = await validate(dtoInstance, {
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    });
 
     if (errors.length > 0) {
-      return res.status(400).json(errors);
+      const details: ValidationDetail[] = errors.map((error) => ({
+        field: error.property,
+        messages: Object.values(error.constraints ?? {}),
+      }));
+      return next(
+        ApiError.badRequest("Validation failed", "VALIDATION_ERROR", details)
+      );
     }
 
     req.body = dtoInstance;

@@ -1,6 +1,6 @@
 import axios, { type AxiosResponse } from "axios";
 import type {
-  getAllUsersResponse,
+  getUserByIdResponse,
   LoginRequest,
   LoginResponse,
   RegisterRequest,
@@ -24,8 +24,6 @@ export const login = (payload: LoginRequest) =>
     payload
   );
 
-  export const getAllUsers = () =>
-    api.get<getAllUsersResponse, AxiosResponse<getAllUsersResponse>>("/users")
 
   export const getUserById = (id: string) =>
-    api.get<getAllUsersResponse, AxiosResponse<getAllUsersResponse>>(`/users/${id}`)
+    api.get<getUserByIdResponse, AxiosResponse<getUserByIdResponse>>(`/users/${id}`)

@@ -1,24 +1,13 @@
-import { AuthController } from "../controllers/auth.controller";
+import { Router } from "express";
+import { UserController } from "../controllers/user.controller";
 import { authenticate } from "../middlewares/auth.middleware";
-import { authorizeRoles } from "../middlewares/role.middleware";
-import router from "./auth.routes";
 
-const authController = new AuthController();
+const router = Router();
+const userController = new UserController();
 
-router.get(
-  "/users",
-  authenticate,
-  authorizeRoles("admin"),
-  authController.getAllUsers  
-);
-
-router.get(
-  "/users/:id",
-  authenticate,
-  authorizeRoles("admin"),
-  authController.getUserById
-)
-
-
+router.get("/me", authenticate, userController.getMe);
+router.get("/:id", authenticate, userController.getUserById);
 
 export default router;
+
+

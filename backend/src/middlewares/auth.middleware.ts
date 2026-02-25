@@ -1,27 +1,42 @@
-import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import type { Request, Response, NextFunction, RequestHandler } from "express";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { ApiError } from "../utils/apiError";
+import type { IUser } from "../models/user.model";
 
-export interface AuthRequest extends Request {
-  user?: any;
+export interface JwtUser {
+  id: string;
+  role: "user" | "admin";
 }
 
-export const authenticate = (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-) => {
+export interface AuthRequest extends Request {
+  user?: JwtUser | IUser;
+}
+
+export const authenticate: RequestHandler = (req, _res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader?.split(" ")[1];
 
   if (!token) {
-    return res.status(401).json({ message: "No token provided" });
+    return next(ApiError.unauthorized("No token provided"));
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET!);
-    req.user = decoded;
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_ACCESS_SECRET!
+    ) as JwtPayload;
+
+    if (!decoded || typeof decoded !== "object" || !decoded.id || !decoded.role) {
+      return next(ApiError.unauthorized("Invalid token"));
+    }
+
+    (req as AuthRequest).user = {
+      id: String(decoded.id),
+      role: decoded.role as "user" | "admin",
+    };
+
     next();
   } catch {
-    return res.status(401).json({ message: "Invalid token" });
+    return next(ApiError.unauthorized("Invalid token"));
   }
 };

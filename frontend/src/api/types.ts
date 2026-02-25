@@ -33,10 +33,6 @@ export interface RegisterRequest {
     token: string;
  }
 
- export interface getAllUsersResponse {
-    message: string;
-    users: User[];
- }
 
  export interface getUserByIdResponse {
     message: string;

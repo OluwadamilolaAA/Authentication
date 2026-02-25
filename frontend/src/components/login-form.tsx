@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "@/store/authStore";
-
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,13 +17,15 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { useUserStore } from "@/store/userStore";
+import { login } from "@/api/axios";
 
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<string | null>(null);
 
-  const login = useAuthStore((state) => state.login);
+  const { setUser } = useUserStore();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,12 +33,11 @@ export function Login() {
     setErrors(null);
 
     try {
-      await login(email, password);
+      const res = await login({ email, password });
+      setUser(res.data.user);
       navigate("/dashboard");
     } catch (err: any) {
-      setErrors(
-        err.response?.data?.message || err.message || "Login failed"
-      );
+      setErrors(err.response?.data?.message || err.message || "Login failed");
     }
   };
 
@@ -53,9 +52,7 @@ export function Login() {
         </CardHeader>
 
         <CardContent>
-          {errors && (
-            <p className="text-sm text-red-500 mb-4">{errors}</p>
-          )}
+          {errors && <p className="text-sm text-red-500 mb-4">{errors}</p>}
 
           <form onSubmit={handleSubmit}>
             <FieldGroup className="space-y-4">
@@ -95,11 +92,7 @@ export function Login() {
                   Login
                 </Button>
 
-                <Button
-                  variant="outline"
-                  type="button"
-                  className="w-full"
-                >
+                <Button variant="outline" type="button" className="w-full">
                   Login with Google
                 </Button>
 

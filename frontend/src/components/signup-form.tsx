@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { register } from "@/api/axios";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,6 +17,8 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { useUserStore } from "@/store/userStore";
+import type { userRole } from "@/api/types";
 
 
 export function Signup() {
@@ -25,10 +28,10 @@ export function Signup() {
     password: "",
   });
 
-  const [role, setRole] = useState("USER");
+  const [role, setRole] = useState<userRole>("user");
   const [errors, setErrors] = useState<string | null>(null);
 
-  
+  const { setUser } = useUserStore();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,7 +39,14 @@ export function Signup() {
     setErrors(null);
 
     try {
-      navigate("/login");
+      const res = await register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role,
+      });
+      setUser(res.data.user);
+      navigate("/dashboard");
     } catch (err: any) {
       setErrors(
         err.response?.data?.message || err.message || "Signup failed"
@@ -108,8 +118,8 @@ export function Signup() {
                   <label className="flex items-center gap-2">
                     <input
                       type="radio"
-                      checked={role === "USER"}
-                      onChange={() => setRole("USER")}
+                      checked={role === "user"}
+                      onChange={() => setRole("user")}
                     />
                     User
                   </label>
@@ -117,8 +127,8 @@ export function Signup() {
                   <label className="flex items-center gap-2">
                     <input
                       type="radio"
-                      checked={role === "ADMIN"}
-                      onChange={() => setRole("ADMIN")}
+                      checked={role === "admin"}
+                      onChange={() => setRole("admin")}
                     />
                     Admin
                   </label>
