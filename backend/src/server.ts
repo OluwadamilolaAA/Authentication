@@ -1,58 +1,29 @@
-import dotenv from "dotenv";
-dotenv.config();
-
-import express from "express";
-import cors from "cors";
-import cookieParser from "cookie-parser";
-import session from "express-session";
-import passport from "./config/passport";
-import authRoutes from "./routes/auth.routes";
-import userRoutes from "./routes/user.routes";
+import app from "./app";
 import { connectDB } from "./config/db";
-import { errorHandler, notFound } from "./middlewares/error.middleware";
+import { env } from "./config/env";
 
-const app = express();
+async function startServer() {
+  try {
+    await connectDB();
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      const allowlist = new Set([
-        "http://localhost:5173",
-        "http://localhost:3000",
-        process.env.CLIENT_URL,
-      ]);
-      if (!origin || allowlist.has(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
-  })
-);
-app.use(express.json());
-app.use(cookieParser());
+    const server = app.listen(env.port, () => {
+      console.log(`Server running on port ${env.port}`);
+    });
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "secret",
-    resave: false,
-    saveUninitialized: false,
-  })
-);
+    const shutdown = (signal: string) => {
+      console.log(`${signal} received. Closing server...`);
+      server.close(() => {
+        console.log("HTTP server closed");
+        process.exit(0);
+      });
+    };
 
-app.use(passport.initialize());
-app.use(passport.session());
+    process.on("SIGINT", () => shutdown("SIGINT"));
+    process.on("SIGTERM", () => shutdown("SIGTERM"));
+  } catch (error) {
+    console.error("Failed to start server", error);
+    process.exit(1);
+  }
+}
 
-app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
-
-app.use(notFound);
-app.use(errorHandler);
-
-export default app;
-
-const PORT = process.env.PORT || 4000;
-
-connectDB().then(() => {
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-});
+startServer();

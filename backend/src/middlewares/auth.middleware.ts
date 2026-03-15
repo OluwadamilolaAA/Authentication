@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction, RequestHandler } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { ApiError } from "../utils/apiError";
 import type { IUser } from "../models/user.model";
+import { env } from "../config/env";
 
 export interface JwtUser {
   id: string;
@@ -14,16 +15,16 @@ export interface AuthRequest extends Request {
 
 export const authenticate: RequestHandler = (req, _res, next) => {
   const authHeader = req.headers.authorization;
-  const token = authHeader?.split(" ")[1];
+  const [scheme, token] = authHeader?.split(" ") ?? [];
 
-  if (!token) {
+  if (!token || scheme !== "Bearer") {
     return next(ApiError.unauthorized("No token provided"));
   }
 
   try {
     const decoded = jwt.verify(
       token,
-      process.env.JWT_ACCESS_SECRET!
+      env.jwtAccessSecret,
     ) as JwtPayload;
 
     if (!decoded || typeof decoded !== "object" || !decoded.id || !decoded.role) {

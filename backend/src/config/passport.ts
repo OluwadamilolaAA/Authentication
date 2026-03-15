@@ -1,53 +1,62 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy, Profile } from "passport-google-oauth20";
 import User, { type IUser } from "../models/user.model";
+import { env } from "./env";
 
 type DoneCallback = (error: unknown, user?: IUser | false) => void;
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL!,
-    },
-    async (
-      _accessToken: string,
-      _refreshToken: string,
-      profile: Profile,
-      done: DoneCallback
-    ) => {
-      try {
-        const email = profile.emails?.[0].value;
+if (env.googleClientId && env.googleClientSecret && env.googleCallbackUrl) {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: env.googleClientId,
+        clientSecret: env.googleClientSecret,
+        callbackURL: env.googleCallbackUrl,
+      },
+      async (
+        _accessToken: string,
+        _refreshToken: string,
+        profile: Profile,
+        done: DoneCallback,
+      ) => {
+        try {
+          const email = profile.emails?.[0].value?.toLowerCase();
 
-        if (!email) {
-          return done(new Error("No email found from Google"));
+          if (!email) {
+            return done(new Error("No email found from Google"));
+          }
+
+          let user = await User.findOne({ email });
+
+          if (!user) {
+            user = await User.create({
+              name: profile.displayName,
+              email,
+              googleId: profile.id,
+              provider: "google",
+              isVerified: true,
+            });
+          }
+
+          done(null, user);
+        } catch (error) {
+          done(error);
         }
+      },
+    ),
+  );
+} else {
+  console.warn(
+    "Google OAuth is disabled. Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_CALLBACK_URL.",
+  );
+}
 
-        let user = await User.findOne({ email });
-
-        if (!user) {
-          user = await User.create({
-            name: profile.displayName,
-            email,
-            googleId: profile.id,
-            provider: "google",
-          });
-        }
-
-        done(null, user);
-      } catch (error) {
-        done(error);
-      }
-    }
-  )
-);
-
-passport.serializeUser((user: IUser, done: DoneCallback) => {
-  done(null, user.id);
+passport.serializeUser((user: Express.User, done) => {
+  const typedUser = user as IUser;
+  done(null, typedUser._id?.toString());
 });
 
-passport.deserializeUser(async (id: string, done: DoneCallback) => {
+passport.deserializeUser(async (id: string, done) => {
   try {
     const user = await User.findById(id);
     done(null, user ?? false);
